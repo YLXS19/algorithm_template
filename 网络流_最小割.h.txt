@@ -1,0 +1,158 @@
+#include<bits/stdc++.h>
+#define pb push_back
+#define pf push_front
+using namespace std;
+const long long inf=2005020600;
+using LL = long long;
+const int N = 1e6 + 100;
+const int M = 1e6 + 100;
+int S, T, nn;
+int a[M], b[N];
+int h[N], cur[N], idx = 1;
+struct edge{
+	int v;
+	LL c;
+	int ne;
+}e[M];
+void add(int v, int u, LL c){
+	e[++idx] = {u, c, h[v]};
+	h[v] = idx;
+	
+	e[++idx] = {v, 0, h[u]};
+	h[u] = idx;
+}
+int d[N];
+bool bfs(){
+	for(int i = 0; i <= nn; i++){
+		d[i] = 0;
+	}
+	queue <int> q;
+	q.push(S); d[S] = 1;
+	while(!q.empty()){
+		int u = q.front(); q.pop();
+		for(int i = h[u]; i; i = e[i].ne){
+			int v = e[i].v;
+			if(d[v] == 0 && e[i].c){
+				d[v] = d[u] + 1;
+				q.push(v);
+				if(v == T) return true;
+			}
+		}
+	}
+	return false;
+}
+LL dfs(int u, LL mf){
+	if(u == T) return mf;
+	LL sum = 0;
+	for(int i = cur[u]; i; i = e[i].ne){
+		cur[u] = i;
+		int v = e[i].v;
+		if(d[v] == d[u] + 1 && e[i].c){
+			LL f = dfs(v, min(mf, e[i].c));
+			e[i].c -= f;
+			e[i ^ 1].c += f;
+			sum += f;
+			mf -= f;
+			if(mf == 0) break;
+		}
+	}
+	if(sum == 0) d[u] = 0;
+	return sum;
+}
+LL dinic(){
+	LL flow = 0;
+	while(bfs()){
+		for(int i = 0; i <= nn; i++){
+			cur[i] = h[i];
+		}
+		flow += dfs(S, 1e18);
+	}
+	return flow;
+}
+
+int vis[N];
+void mincut(int u){
+	vis[u] = 1;
+	for(int i = h[u]; i; i = e[i].ne){
+		int v = e[i].v;
+		if(!vis[v] && e[i].c) mincut(v);
+	}
+}
+
+void solve(){
+	int n, m;
+	cin >> m >> n;
+	S = 0, nn = T = n + m + 1;
+	for(int i = 1; i <= m; i++){
+		cin >> a[i];
+		add(i + n, T, a[i]);
+		char c;
+		string s;
+		while(cin.get(c)){
+			if(c == '\r' || c == '\n'){
+				if(s.size()){
+					int k = stoi(s);
+					add(k, i + n, 1e9);
+				}
+				break;
+			}
+			if(c == ' ' && s.size()){
+				int k = stoi(s);
+				add(k, i + n, 1e9);
+				s = "";
+			}else{
+				s += c;
+			}
+		}
+	}
+	for(int i = 1; i <= n; i++){
+		cin >> b[i];
+		add(S, i, b[i]);
+	}
+
+	LL res = dinic();
+	
+	// // 最小割划分
+	mincut(S);
+	LL ans = 0;
+	for(int i = 1; i <= m; i++){
+		if(!vis[i + n]){
+			cout << i << " ";
+			ans += a[i];
+		}
+	}
+	cout << "\n";
+	for(int i = 1; i <= n; i++){
+		if(!vis[i]){
+			cout << i << " ";
+			ans -= b[i];
+		}
+	}
+	cout << "\n";
+	
+	cout << ans << "\n";
+	
+	//最小割
+	// cout << res << "\n";
+	
+	// // 最小割的最小边数边权是1，求割的费用最少时用以下
+	// idx = 1;
+	// for(int i = 1; i <= n; i++){
+		// h[i] = 0;
+	// }
+	// for(int i = 1; i <= m; i++){
+		// add(a[i], b[i], (m + 1) * c[i] + 1);
+	// }
+	// cout << dinic() % (m + 1) << "\n";
+	
+}
+int main(){
+	ios::sync_with_stdio(false);
+	cin.tie(0);
+	cout.tie(0);
+	int T = 1;
+	// cin >> T;
+	while(T--){
+		solve();
+	}
+}

@@ -1,0 +1,91 @@
+#include<bits/stdc++.h>
+#define pb push_back
+#define pf push_front
+using namespace std;
+const long long inf=2005020600;
+using LL = long long;
+const int N = 200 + 100;
+const int M = 1e4 + 100;
+const LL mod = 1e9 + 7;
+int n, m, s, t;
+int h[N], cur[N], idx = 1;
+struct edge{
+	int v;
+	LL c;
+	int ne;
+}e[M];
+void add(int v, int u, LL c){
+	e[++idx] = {u, c, h[v]};
+	h[v] = idx;
+	
+	e[++idx] = {v, 0, h[u]};
+	h[u] = idx;
+}
+int d[N];
+bool bfs(){
+	for(int i = 1; i <= n; i++){
+		d[i] = 0;
+	}
+	queue <int> q;
+	q.push(s); d[s] = 1;
+	while(!q.empty()){
+		int u = q.front(); q.pop();
+		for(int i = h[u]; i; i = e[i].ne){
+			int v = e[i].v;
+			if(d[v] == 0 && e[i].c){
+				d[v] = d[u] + 1;
+				q.push(v);
+				if(v == t) return true;
+			}
+		}
+	}
+	return false;
+}
+LL dfs(int u, LL mf){
+	if(u == t) return mf;
+	LL sum = 0;
+	for(int i = cur[u]; i; i = e[i].ne){
+		cur[u] = i;
+		int v = e[i].v;
+		if(d[v] == d[u] + 1 && e[i].c){
+			LL f = dfs(v, min(mf, e[i].c));
+			e[i].c -= f;
+			e[i ^ 1].c += f;
+			sum += f;
+			mf -= f;
+			if(mf == 0) break;
+		}
+	}
+	if(sum == 0) d[u] = 0;
+	return sum;
+}
+LL dinic(){
+	LL flow = 0;
+	while(bfs()){
+		for(int i = 1; i <= n ; i++){
+			cur[i] = h[i];
+		}
+		flow += dfs(s, 1e18);
+	}
+	return flow;
+}
+void solve(){
+	cin >> n >> m >> s >> t;
+	for(int i = 1; i <= m; i++){
+		int u, v, w;
+		cin >> u >> v >> w;
+		add(u, v, w);
+	}
+	cout << dinic();
+}
+int main(){
+	ios::sync_with_stdio(false);
+	cin.tie(0);
+	cout.tie(0);
+	int T = 1;
+	// cin >> T;
+	// cout << fixed << setprecision(12);
+	while(T--){
+		solve();                      
+	}
+}

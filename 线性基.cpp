@@ -32,7 +32,7 @@ int main(){
 					d[j]=x;
 					break;
 				}
-				else x=d[j];
+				else x^=d[j];
 			}
 		}
 	}
